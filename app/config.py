@@ -1,0 +1,2 @@
+SECRET_KEY = 'CHANGE-ME'
+SQLALCHEMY_DATABASE_URI = "sqlite:///pinban.db"
