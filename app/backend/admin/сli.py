@@ -1,3 +1,4 @@
+import bcrypt
 import click
 from werkzeug.security import generate_password_hash
 from app.backend.admin.routes import admin_bp
@@ -12,7 +13,9 @@ admin_bp.cli.help = 'Perform user-related operations.'
 @click.argument('email')
 @click.password_option()
 def createsuperuser(username, email, password):
-    password_hash = generate_password_hash(password, method='scrypt:32768:8:1')
+    salt = bcrypt.gensalt()
+    password_hash = bcrypt.hashpw(password=password.encode(),
+                                  salt=salt).decode()
 
     if AdminUser.query.filter(AdminUser.username == username).first():
         click.echo('The username is already taken.')

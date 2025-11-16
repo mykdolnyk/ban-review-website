@@ -18,12 +18,12 @@ class Requester(db.Model):
     fp_hash: Mapped[str] = mapped_column()
     
     was_approved_before: Mapped[bool] = mapped_column(default=False)
-    last_reviewed_by: Mapped['AdminUser'] = relationship(back_populates='admin_user')
+    last_reviewed_by: Mapped['AdminUser'] = relationship()
     last_reviewed_by_id: Mapped[int] = mapped_column(ForeignKey('admin_user.id'), nullable=True)
     
     messages: Mapped[List['Message']] = relationship(back_populates='requester')
     threads: Mapped[List['Thread']] = relationship(back_populates='requester')
-    notes: Mapped[List['AdminNote']] = relationship(back_populates='user')
+    notes: Mapped[List['AdminNote']] = relationship(back_populates='requester')
 
     def __repr__(self):
         return f"<User: id={self.id}, username='{self.username}'>"
