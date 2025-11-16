@@ -32,6 +32,7 @@ class AdminUser(UserMixin, db.Model):
     
 class AdminNote(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column()
     created_on: Mapped[datetime] = mapped_column(default=datetime.now)
     
     author_id: Mapped[int] = mapped_column(ForeignKey('admin_user.id'), nullable=True)

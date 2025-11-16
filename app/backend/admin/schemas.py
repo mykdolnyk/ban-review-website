@@ -1,6 +1,8 @@
+from datetime import datetime
 import bcrypt
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from app.backend.admin.models import AdminUser
+from app.backend.users.models import Requester
 
 
 class AdminLogin(BaseModel):
@@ -24,3 +26,37 @@ class AdminLogin(BaseModel):
             raise ValueError("Login credentials are incorrect.")
 
         return self
+
+
+class AdminUserSchema(BaseModel):
+    id: int
+    username: str
+    email: str
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+    
+class AdminNoteCreate(BaseModel):
+    text: str
+    requester_id: int
+    
+    @field_validator('requester_id')
+    def check_requester(requester_id: int):
+        requester = Requester.query.filter_by(id=requester_id).first()
+        # if not requester:
+        #     raise ValueError('Such Requester doesn\'t exist.')
+        return requester_id
+
+
+class AdminNoteSchema(BaseModel):
+    id: int
+    text: str
+    created_on: datetime
+    author_id: int
+    requester_id: int
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminNoteUpdate(BaseModel):
+    text: str
