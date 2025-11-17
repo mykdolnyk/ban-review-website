@@ -2,7 +2,7 @@ from datetime import datetime
 import bcrypt
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from app.backend.admin.models import AdminUser
-from app.backend.users.models import Requester
+from app.backend.requesters.models import Requester
 
 
 class AdminLogin(BaseModel):
@@ -43,8 +43,8 @@ class AdminNoteCreate(BaseModel):
     @field_validator('requester_id')
     def check_requester(requester_id: int):
         requester = Requester.query.filter_by(id=requester_id).first()
-        # if not requester:
-        #     raise ValueError('Such Requester doesn\'t exist.')
+        if not requester:
+            raise ValueError('Such Requester doesn\'t exist.')
         return requester_id
 
 

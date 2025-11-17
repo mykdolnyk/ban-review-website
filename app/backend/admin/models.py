@@ -4,7 +4,7 @@ from app.app_factory import db
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, List
 from datetime import datetime
-from app.backend.users.models import Requester
+from app.backend.requesters.models import Requester
 
 if TYPE_CHECKING:
     from app.backend.messages.models import Message

@@ -3,9 +3,8 @@ from app.app_factory import db
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, List
 from datetime import datetime
-
+from app.backend.messages.models import Message, Thread
 if TYPE_CHECKING:
-    from app.backend.messages.models import Message, Thread
     from app.backend.admin.models import AdminUser, AdminNote
 
 
@@ -27,3 +26,7 @@ class Requester(db.Model):
 
     def __repr__(self):
         return f"<User: id={self.id}, username='{self.username}'>"
+    
+    @property
+    def has_active_threads(self):
+        return bool(Thread.query.filter_by(requester_id=self.id, status=Thread.STATUSES.ACTIVE).first())
