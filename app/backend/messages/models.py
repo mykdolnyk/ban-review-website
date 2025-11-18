@@ -44,3 +44,7 @@ class Thread(db.Model):
     
     requester_id: Mapped[int] = mapped_column(ForeignKey('requester.id'))
     requester: Mapped["Requester"] = relationship(back_populates='threads')
+
+    @classmethod
+    def active(cls):
+        return db.session.query(cls).filter_by(status=cls.STATUSES.ACTIVE)

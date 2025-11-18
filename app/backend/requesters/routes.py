@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request, session
 from pydantic import ValidationError
 from app.backend.requesters.models import Requester
 from app.backend.requesters.schemas import RequesterCreate, RequesterSchema
-from app.backend.messages.models import Thread
+from app.backend.messages.models import Message, Thread
 from sqlalchemy import func
 from app.app_factory import db
 from app.utils.misc import get_ip_address
@@ -30,7 +30,7 @@ def authenticate_requester():
         # Create one
         ip = get_ip_address().encode()
         data = {
-            **requester_schema.model_dump(exclude=['fp']),
+            **requester_schema.model_dump(exclude=['fp', 'first_message']),
             'ip_hash': hashlib.sha256(ip).hexdigest(),
         }
 
@@ -65,6 +65,13 @@ def authenticate_requester():
             requester_id=requester.id
         )
         db.session.add(new_thread)
+        db.session.flush()
+        new_message = Message(
+            text=requester_schema.first_message,
+            requester_id=requester.id,
+            thread_id=new_thread.id,
+        )
+        db.session.add(new_message)
         db.session.commit()
 
         session['requester_id'] = requester.id

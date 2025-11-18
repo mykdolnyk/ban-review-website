@@ -12,6 +12,7 @@ class RequesterSchema(BaseModel):
 class RequesterCreate(BaseModel):
     username: str
     fp: str 
+    first_message: str
     
     @computed_field
     @property
