@@ -34,49 +34,49 @@ def authenticate_requester():
             'ip_hash': hashlib.sha256(ip).hexdigest(),
         }
 
-        new_requester = Requester(**data)
-        db.session.add(new_requester)
-        db.session.commit()
-        session['requester_id'] = new_requester.id
-
-        response = {'success': True,
-                    'message': 'New Requester has been created.'}
-        return jsonify(response), 200
+        requester = Requester(**data)
+        db.session.add(requester)
 
     if requester.has_active_threads:
         # If the user has a session or the same fingerprint
         if session.get('requester_id') == requester.id or requester_schema.fp_hash == requester.fp_hash:
             # Log them in
             session['requester_id'] = requester.id
+            thread = Thread.active().filter_by(requester_id=requester.id).first()
             response = {'success': True,
-                        'message': 'Active Thread has been found.'}
+                        'message': 'Active Thread has been found.',
+                        'thread_id': thread.id}
+                        
             return jsonify(response), 200
         else:
             response = {'success': False}
             return jsonify(response), 401
+
     else:
         # Log them in and create a new thread, update the FP and IP of the user
         ip = get_ip_address().encode()
         requester.ip_hash = hashlib.sha256(ip).hexdigest()
         requester.fp_hash = requester_schema.fp_hash
 
-        new_thread = Thread(
-            key=str(uuid4()),
-            requester_id=requester.id
-        )
-        db.session.add(new_thread)
-        db.session.flush()
-        new_message = Message(
-            text=requester_schema.first_message,
-            requester_id=requester.id,
-            thread_id=new_thread.id,
-        )
-        db.session.add(new_message)
-        db.session.commit()
+    new_thread = Thread(
+        key=str(uuid4()),
+        requester_id=requester.id
+    )
+    db.session.add(new_thread)
+    db.session.flush()
+    new_message = Message(
+        text=requester_schema.first_message,
+        requester_id=requester.id,
+        thread_id=new_thread.id,
+    )
+    db.session.add(new_message)
+    db.session.commit()
 
-        session['requester_id'] = requester.id
-        response = {'success': True, 'message': 'New Thread has been created.'}
-        return jsonify(response), 200
+    session['requester_id'] = requester.id
+    response = {'success': True,
+                'message': 'New Thread has been created.',
+                'thread_id': new_thread.id}
+    return jsonify(response), 200
 
 
 @requesters_bp.route('/get-current-requester', methods=['GET'])
@@ -88,8 +88,10 @@ def get_current_requester():
             'requester': None
         }
     else:
-        requester = Requester.query.filter_by(id=requester_id).first()
+        requester: Requester = Requester.query.filter_by(id=requester_id).first()
+        active_thread = Thread.active().filter_by(requester_id=requester_id).first()
         response = {
-            'requester': RequesterSchema.model_validate(requester).model_dump()
+            'requester': RequesterSchema.model_validate(requester).model_dump(),
+            'thread_id': active_thread.id
         }
     return response
