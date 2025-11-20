@@ -5,6 +5,8 @@ from app.backend.admin.helpers import admin_only
 from app.backend.admin.models import AdminNote, AdminUser
 from app.backend.admin.schemas import AdminLogin, AdminNoteCreate, AdminNoteSchema, AdminNoteUpdate, AdminUserSchema
 from app.app_factory import db
+from app.backend.messages.models import Message, Thread
+from app.backend.messages.schemas import MessageCreate, MessageSchema
 
 admin_bp = Blueprint(
     name='admin',
@@ -202,4 +204,33 @@ def admin_update_note(id: int):
 
     response = AdminNoteSchema.model_validate(note).model_dump()
 
+    return jsonify(response)
+
+
+@admin_bp.route('/send-message/<int:id>', methods=['POST'])
+@admin_only
+def admin_send_message_to_thread(id: int):
+    thread: Thread = Thread.active().filter_by(id=id).first()
+
+    if not thread:
+        response = {'success': False, 'message': 'No such Thread.'}
+        return jsonify(response), 404
+
+    try:
+        message_schema = MessageCreate(**request.get_json())
+    except ValidationError as error:
+        return jsonify({"errors": error.errors(include_url=False, include_context=False)}), 400
+
+    try:
+        message = Message(**message_schema.model_dump(),
+                          admin_user_id=current_user.id,
+                          thread_id=thread.id)
+        db.session.add(message)
+        db.session.commit()
+
+    except Exception as e:
+        return {'success': False,
+                'message': 'Unknown error occured'}, 500
+
+    response = MessageSchema.model_validate(message).model_dump()
     return jsonify(response)
