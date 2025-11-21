@@ -57,12 +57,8 @@ def admin_logout():
 @admin_bp.route('/current-user', methods=['GET'])
 @admin_only
 def admin_get_current_user():
-    current_user: AdminUser = current_user
-    if current_user.is_anonymous:
-        response = {}
-        return jsonify(response)
-
-    response = AdminUserSchema.model_validate(current_user).model_dump()
+    user: AdminUser = current_user
+    response = AdminUserSchema.model_validate(user).model_dump()
     return jsonify(response)
 
 
@@ -101,6 +97,35 @@ def admin_get_user(id: int):
         return {'success': False, 'message': 'No such Admin User'}, 404
 
     response = AdminUserSchema.model_validate(user).model_dump()
+    return jsonify(response)
+
+
+@admin_bp.route('/send-message/<int:id>', methods=['POST'])
+@admin_only
+def admin_send_message_to_thread(id: int):
+    thread: Thread = Thread.active().filter_by(id=id).first()
+
+    if not thread:
+        response = {'success': False, 'message': 'No such Thread.'}
+        return jsonify(response), 404
+
+    try:
+        message_schema = MessageCreate(**request.get_json())
+    except ValidationError as error:
+        return jsonify({"errors": error.errors(include_url=False, include_context=False)}), 400
+
+    try:
+        message = Message(**message_schema.model_dump(),
+                          admin_user_id=current_user.id,
+                          thread_id=thread.id)
+        db.session.add(message)
+        db.session.commit()
+
+    except Exception as e:
+        return {'success': False,
+                'message': 'Unknown error occured'}, 500
+
+    response = MessageSchema.model_validate(message).model_dump()
     return jsonify(response)
 
 
@@ -204,33 +229,4 @@ def admin_update_note(id: int):
 
     response = AdminNoteSchema.model_validate(note).model_dump()
 
-    return jsonify(response)
-
-
-@admin_bp.route('/send-message/<int:id>', methods=['POST'])
-@admin_only
-def admin_send_message_to_thread(id: int):
-    thread: Thread = Thread.active().filter_by(id=id).first()
-
-    if not thread:
-        response = {'success': False, 'message': 'No such Thread.'}
-        return jsonify(response), 404
-
-    try:
-        message_schema = MessageCreate(**request.get_json())
-    except ValidationError as error:
-        return jsonify({"errors": error.errors(include_url=False, include_context=False)}), 400
-
-    try:
-        message = Message(**message_schema.model_dump(),
-                          admin_user_id=current_user.id,
-                          thread_id=thread.id)
-        db.session.add(message)
-        db.session.commit()
-
-    except Exception as e:
-        return {'success': False,
-                'message': 'Unknown error occured'}, 500
-
-    response = MessageSchema.model_validate(message).model_dump()
     return jsonify(response)

@@ -97,21 +97,6 @@ def get_thread_list():
     })
 
 
-@messages_bp.route('/threads/<int:id>', methods=["GET"])
-def get_thread(id: int):
-    thread: Thread = Thread.active().filter_by(id=id).first()
-
-    if not thread:
-        response = {'success': False, 'message': 'No such Thread.'}
-        return jsonify(response), 404
-
-    if thread.requester_id != session.get('requester_id') and current_user.is_anonymous:
-        abort(403)
-
-    response = ThreadDetailedSchema.model_validate(thread).model_dump()
-    return jsonify(response)
-
-
 @messages_bp.route('/threads/<int:id>', methods=["DELETE"])
 @admin_only
 def delete_thread(id: int):
@@ -132,6 +117,21 @@ def delete_thread(id: int):
                 'message': 'Unknown error occured'}, 500
 
     return '', 204
+
+
+@messages_bp.route('/threads/<int:id>', methods=["GET"])
+def get_thread(id: int):
+    thread: Thread = Thread.active().filter_by(id=id).first()
+
+    if not thread:
+        response = {'success': False, 'message': 'No such Thread.'}
+        return jsonify(response), 404
+
+    if thread.requester_id != session.get('requester_id') and current_user.is_anonymous:
+        abort(403)
+
+    response = ThreadDetailedSchema.model_validate(thread).model_dump()
+    return jsonify(response)
 
 
 @messages_bp.route('/threads/<int:id>', methods=['POST'])
