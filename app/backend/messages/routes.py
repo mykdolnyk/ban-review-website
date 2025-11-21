@@ -1,9 +1,10 @@
 from flask_login import current_user
 from pydantic import ValidationError
 from app.backend.admin.helpers import admin_only
+from app.backend.messages.helpers import update_thread_status
 from app.backend.messages.models import Message, Thread
 from flask import Blueprint, abort, jsonify, request, session
-from app.backend.messages.schemas import MessageCreate, MessageSchema, ThreadBasicSchema, ThreadDetailedSchema
+from app.backend.messages.schemas import MessageCreate, MessageSchema, ThreadBasicSchema, ThreadDetailedSchema, ThreadUpdate
 from app.app_factory import db
 
 messages_bp = Blueprint(
@@ -107,16 +108,43 @@ def delete_thread(id: int):
         return jsonify(response), 404
     
     try:
-        for message in thread.messages:
-            db.session.delete(message)
-        thread.status = Thread.STATUSES.UNRESOLVED
-        db.session.commit()
+        update_thread_status(
+            thread=thread,
+            new_status=Thread.STATUSES.UNRESOLVED
+        )
 
     except Exception as e:
         return {'success': False,
                 'message': 'Unknown error occured'}, 500
 
     return '', 204
+
+
+@messages_bp.route('/threads/<int:id>', methods=['PUT'])
+@admin_only
+def update_thread(id: int):
+    try:
+        schema = ThreadUpdate(**request.get_json())
+    except ValidationError as error:
+        return jsonify({"errors": error.errors(include_url=False, include_context=False)}), 400
+
+    thread: Thread = Thread.active().filter_by(id=id).first()
+    if not thread:
+        response = {'success': False, 'message': 'No such Thread.'}
+        return jsonify(response), 404
+    
+    try:
+        update_thread_status(
+            thread=thread,
+            new_status=schema.status
+        )
+
+    except Exception as e:
+        return {'success': False,
+                'message': 'Unknown error occured'}, 500    
+
+    response = ThreadDetailedSchema.model_validate(thread).model_dump()
+    return jsonify(response)
 
 
 @messages_bp.route('/threads/<int:id>', methods=["GET"])
@@ -163,3 +191,10 @@ def send_message_to_thread(id: int):
 
     response = MessageSchema.model_validate(message).model_dump()
     return jsonify(response)
+
+
+@messages_bp.route('/threads-statuses', methods=['GET'])
+def get_thread_statuses():
+    statuses = {status.name: status.value for status in Thread.STATUSES}
+    
+    return jsonify(statuses)

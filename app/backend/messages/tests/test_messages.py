@@ -1,5 +1,7 @@
 from flask.testing import FlaskClient
 
+from app.backend.messages.models import Thread
+
 
 def test_get_message_list(client: FlaskClient, minimal_testing_setup):
     # Non-authorized login
@@ -84,6 +86,26 @@ def test_delete_thread(client: FlaskClient, minimal_testing_setup):
     assert response.status_code == 204
 
 
+def test_update_thread(client: FlaskClient, minimal_testing_setup):
+    thread = minimal_testing_setup['thread']
+    new_status = Thread.STATUSES.APPROVED.value
+    response = client.put(f'api/messages/threads/{thread.id}', json={
+        'status': new_status
+    })
+    assert response.status_code == 401
+    
+    # Log in
+    response = client.post('api/admin/login', json={
+        **minimal_testing_setup['admin_user']['credentials']
+    })
+    
+    response = client.put(f'api/messages/threads/{thread.id}', json={
+        'status': new_status
+    })
+    assert response.status_code == 200
+    assert thread.status == new_status
+
+
 def test_get_thread(client: FlaskClient, minimal_testing_setup):
     thread = minimal_testing_setup['thread']
     requester = minimal_testing_setup['requester']['object']
@@ -143,3 +165,11 @@ def test_send_message_to_thread(client: FlaskClient, minimal_testing_setup):
         'text': 'Test message'
     })
     assert response.status_code == 404
+
+
+def test_get_thread_statuses(client: FlaskClient, minimal_testing_setup):
+    statuses = {status.name: status.value for status in Thread.STATUSES}
+    
+    response = client.get('api/messages/threads-statuses')
+    assert response.status_code == 200
+    assert len(response.get_json().keys()) == len(statuses.keys())

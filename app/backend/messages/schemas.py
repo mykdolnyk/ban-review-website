@@ -38,3 +38,6 @@ class ThreadDetailedSchema(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
     
+    
+class ThreadUpdate(BaseModel):
+    status: int
