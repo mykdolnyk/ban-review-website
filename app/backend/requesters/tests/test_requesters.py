@@ -96,4 +96,38 @@ def test_get_current_user(client: FlaskClient):
     response = client.get('/api/requesters/get-current-requester')
     assert response.status_code == 200
     assert response.get_json().get('requester').get('username') == username
+
+
+def test_get_requester_list(client: FlaskClient, minimal_testing_setup):
+    response = client.get('api/requesters/users')
+    assert response.status_code == 401
     
+    # Log in
+    response = client.post('api/admin/login', json={
+        **minimal_testing_setup['admin_user']['credentials']
+    })
+    
+    response = client.get('api/requesters/users')
+    assert response.status_code == 200
+    assert response.get_json()['total'] == 1
+    
+
+def test_get_requester(client: FlaskClient, minimal_testing_setup):
+    requester_id = minimal_testing_setup['requester']['object'].id
+
+    response = client.get(f'api/requesters/users/{requester_id}')
+    assert response.status_code == 401
+    
+    # Log in
+    response = client.post('api/admin/login', json={
+        **minimal_testing_setup['admin_user']['credentials']
+    })
+    
+    response = client.get(f'api/requesters/users/{requester_id}')
+    assert response.status_code == 200
+    
+    assert response.get_json()['id'] == requester_id
+    
+    # Non-existent user query
+    response = client.get(f'api/requesters/users/9999')
+    assert response.status_code == 404

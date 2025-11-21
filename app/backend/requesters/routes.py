@@ -1,6 +1,7 @@
 from uuid import uuid4
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, abort, jsonify, request, session
 from pydantic import ValidationError
+from app.backend.admin.helpers import admin_only
 from app.backend.requesters.models import Requester
 from app.backend.requesters.schemas import RequesterCreate, RequesterSchema
 from app.backend.messages.models import Message, Thread
@@ -95,3 +96,41 @@ def get_current_requester():
             'thread_id': active_thread.id
         }
     return response
+
+
+@requesters_bp.route('/users', methods=['GET'])
+@admin_only
+def get_requester_list():
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per-page', 5))
+    except ValueError:
+        abort(400)
+
+    pagination = Requester.query.paginate(page=page,
+                                             per_page=per_page,
+                                             max_per_page=25,
+                                             error_out=False)
+
+    user_list = [RequesterSchema.model_validate(user).model_dump()
+                 for user in pagination.items]
+
+    return jsonify({
+        "page": pagination.page,
+        "per_page": pagination.per_page,
+        "total": pagination.total,
+        "pages": pagination.pages,
+        "user_list": user_list
+    })
+
+
+@requesters_bp.route('/users/<int:id>', methods=["GET"])
+@admin_only
+def get_requester(id: int):
+    user = Requester.query.filter_by(id=id).first()
+
+    if not user:
+        return {'success': False, 'message': 'No such Requester'}, 404
+
+    response = RequesterSchema.model_validate(user).model_dump()
+    return jsonify(response)
