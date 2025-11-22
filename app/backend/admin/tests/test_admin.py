@@ -1,11 +1,15 @@
 from flask.testing import FlaskClient
+from conftest import TEST_PASSWORD
+# 'username': minimal_testing_setup['admin_users'][0].username,
+# 'password': TEST_PASSWORD
 
 
 def test_admin_login(client: FlaskClient, minimal_testing_setup):
     response = client.post('api/admin/login', json={
-        **minimal_testing_setup['admin_user']['credentials']
+        'username': minimal_testing_setup['admin_users'][0].username,
+        'password': TEST_PASSWORD
     })
-    admin_id = minimal_testing_setup['admin_user']['object'].id
+    admin_id = minimal_testing_setup['admin_users'][0].id
     assert response.status_code == 200
     assert response.get_json()['id'] == admin_id
 
@@ -28,7 +32,8 @@ def test_admin_logout(client: FlaskClient, minimal_testing_setup):
 
     # Login
     response = client.post('api/admin/login', json={
-        **minimal_testing_setup['admin_user']['credentials']
+        'username': minimal_testing_setup['admin_users'][0].username,
+        'password': TEST_PASSWORD
     })
 
     # Log out
@@ -40,68 +45,72 @@ def test_admin_logout(client: FlaskClient, minimal_testing_setup):
 def test_admin_get_current_user(client: FlaskClient, minimal_testing_setup):
     response = client.get('api/admin/current-user')
     assert response.status_code == 401
-    
+
     # Log in
     response = client.post('api/admin/login', json={
-        **minimal_testing_setup['admin_user']['credentials']
+        'username': minimal_testing_setup['admin_users'][0].username,
+        'password': TEST_PASSWORD
     })
-    
+
     response = client.get('api/admin/current-user')
     assert response.status_code == 200
-    
-    admin_id = minimal_testing_setup['admin_user']['object'].id
+
+    admin_id = minimal_testing_setup['admin_users'][0].id
     assert response.get_json()['id'] == admin_id
-    
+
 
 def test_admin_get_user_list(client: FlaskClient, minimal_testing_setup):
     response = client.get('api/admin/users')
     assert response.status_code == 401
-    
+
     # Log in
     response = client.post('api/admin/login', json={
-        **minimal_testing_setup['admin_user']['credentials']
+        'username': minimal_testing_setup['admin_users'][0].username,
+        'password': TEST_PASSWORD
     })
-    
+
     response = client.get('api/admin/users')
     assert response.status_code == 200
-    assert response.get_json()['total'] == 1
-    
+    assert response.get_json()['total'] == len(minimal_testing_setup['admin_users'])
+
 
 def test_admin_get_user(client: FlaskClient, minimal_testing_setup):
-    admin_id = minimal_testing_setup['admin_user']['object'].id
+    admin_id = minimal_testing_setup['admin_users'][0].id
 
     response = client.get(f'api/admin/users/{admin_id}')
     assert response.status_code == 401
-    
+
     # Log in
     response = client.post('api/admin/login', json={
-        **minimal_testing_setup['admin_user']['credentials']
+        'username': minimal_testing_setup['admin_users'][0].username,
+        'password': TEST_PASSWORD
     })
-    
+
     response = client.get(f'api/admin/users/{admin_id}')
     assert response.status_code == 200
-    
+
     assert response.get_json()['id'] == admin_id
-    
+
     # Non-existent user query
     response = client.get(f'api/admin/users/9999')
     assert response.status_code == 404
-    
+
 
 def test_admin_send_message_to_thread(client: FlaskClient, minimal_testing_setup):
-    thread_id = minimal_testing_setup['thread'].id
+    thread_id = minimal_testing_setup['threads'][0].id
     text = 'Testing Text'
-    
+
     response = client.post(f'/api/admin/send-message/{thread_id}', json={
         'text': text
     })
     assert response.status_code == 401
-    
+
     # Log in
     response = client.post('api/admin/login', json={
-        **minimal_testing_setup['admin_user']['credentials']
+        'username': minimal_testing_setup['admin_users'][0].username,
+        'password': TEST_PASSWORD
     })
-    
+
     response = client.post(f'/api/admin/send-message/{thread_id}', json={
         'text': text
     })
