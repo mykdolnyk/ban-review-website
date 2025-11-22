@@ -138,10 +138,20 @@ def admin_get_note_list():
     except ValueError:
         abort(400)
 
-    pagination = AdminNote.query.paginate(page=page,
-                                          per_page=per_page,
-                                          max_per_page=25,
-                                          error_out=False)
+    query = AdminNote.query
+
+    # Additional query params
+    author_id = request.args.get("author_id", type=int)
+    if author_id is not None:
+        query = query.filter(AdminNote.author_id == author_id)
+    requester_id = request.args.get("requester_id", type=int)
+    if requester_id is not None:
+        query = query.filter(AdminNote.requester_id == requester_id)
+
+    pagination = query.paginate(page=page,
+                                per_page=per_page,
+                                max_per_page=25,
+                                error_out=False)
 
     note_list = [AdminNoteSchema.model_validate(note).model_dump()
                  for note in pagination.items]

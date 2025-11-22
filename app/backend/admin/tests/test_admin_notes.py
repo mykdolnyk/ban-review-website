@@ -15,6 +15,19 @@ def test_admin_get_note_list(client: FlaskClient, minimal_testing_setup):
     response = client.get('api/admin/notes')
     assert response.status_code == 200
     assert response.get_json()['total'] == len(minimal_testing_setup['admin_notes'])
+    
+    # Check query params
+    admin_user = minimal_testing_setup['admin_users'][0]
+    response = client.get(f'api/admin/notes?author_id={admin_user.id}')
+    assert response.status_code == 200
+    assert response.get_json()['total'] == len(admin_user.notes)
+    assert response.get_json()['note_list'][0]['author_id'] == admin_user.id
+    
+    requester = minimal_testing_setup['requesters'][1]
+    response = client.get(f'api/admin/notes?requester_id={requester.id}')
+    assert response.status_code == 200
+    assert response.get_json()['total'] == len(requester.notes)
+    assert response.get_json()['note_list'][0]['requester_id'] == requester.id
 
 
 def test_admin_get_note(client: FlaskClient, minimal_testing_setup):
