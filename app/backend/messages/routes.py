@@ -1,3 +1,4 @@
+from logging import getLogger
 from flask_login import current_user
 from pydantic import ValidationError
 from app.backend.admin.helpers import admin_only
@@ -13,6 +14,8 @@ messages_bp = Blueprint(
     import_name=__name__,
     url_prefix='/api/messages'
 )
+
+logger = getLogger(__name__)
 
 
 @messages_bp.route('/messages', methods=['GET'])
@@ -52,6 +55,7 @@ def delete_message(id: int):
         db.session.delete(message)
         db.session.commit()
     except Exception as e:
+        logger.exception(e)
         return {'success': False,
                 'message': 'Unknown error occured'}, 500
 
@@ -97,6 +101,7 @@ def delete_thread(id: int):
         )
 
     except Exception as e:
+        logger.exception(e)
         return {'success': False,
                 'message': 'Unknown error occured'}, 500
 
@@ -123,6 +128,7 @@ def update_thread(id: int):
         )
 
     except Exception as e:
+        logger.exception(e)
         return {'success': False,
                 'message': 'Unknown error occured'}, 500    
 
@@ -169,6 +175,7 @@ def send_message_to_thread(id: int):
         db.session.commit()
 
     except Exception as e:
+        logger.exception(e)
         return {'success': False,
                 'message': 'Unknown error occured'}, 500
 

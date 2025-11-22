@@ -12,7 +12,7 @@ login_manager = LoginManager()
 
 
 def create_app(config_object=config, overrides=None):
-    # logging_config(config.LOGGING)
+    logging_config(config.LOGGING)
     
     flask_app = Flask(__name__)
     flask_app.config.from_object(config_object)

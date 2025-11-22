@@ -1,3 +1,4 @@
+from logging import getLogger
 from flask import Blueprint, abort, jsonify, request
 from flask_login import current_user, login_user, logout_user
 from pydantic import ValidationError
@@ -14,6 +15,8 @@ admin_bp = Blueprint(
     import_name=__name__,
     url_prefix='/api/admin',
 )
+
+logger = getLogger(__name__)
 
 
 @admin_bp.route('/login', methods=['POST'])
@@ -108,6 +111,7 @@ def admin_send_message_to_thread(id: int):
         db.session.commit()
 
     except Exception as e:
+        logger.exception(e)
         return {'success': False,
                 'message': 'Unknown error occured'}, 500
 
@@ -177,6 +181,7 @@ def admin_create_note():
         db.session.add(note)
         db.session.commit()
     except Exception as e:
+        logger.exception(e)
         return {'success': False,
                 'message': 'Unknown error occured'}, 500
 
@@ -197,6 +202,7 @@ def admin_delete_note(id: int):
         db.session.delete(note)
         db.session.commit()
     except Exception as e:
+        logger.exception(e)
         return {'success': False,
                 'message': 'Unknown error occured'}, 500
 
@@ -220,6 +226,7 @@ def admin_update_note(id: int):
     try:
         db.session.commit()
     except Exception as e:
+        logger.exception(e)
         return {'success': False,
                 'message': 'Unknown error occured'}, 500
 

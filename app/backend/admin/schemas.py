@@ -1,8 +1,12 @@
 from datetime import datetime
+from logging import getLogger
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from app.backend.admin.helpers import check_password_hash
 from app.backend.admin.models import AdminUser
 from app.backend.requesters.models import Requester
+
+
+logger = getLogger(__name__)
 
 
 class AdminLogin(BaseModel):
@@ -19,8 +23,9 @@ class AdminLogin(BaseModel):
             credentials_match = check_password_hash(
                 password=self.password, 
                 password_hash=user.password)
-        except Exception as exc:
-            raise exc
+        except Exception as e:
+            logger.exception(e)
+            raise e
 
         if not credentials_match:
             raise ValueError("Login credentials are incorrect.")
