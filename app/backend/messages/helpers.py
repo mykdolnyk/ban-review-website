@@ -1,5 +1,25 @@
-from app.backend.messages.models import Thread
+from uuid import uuid4
+from app.backend.messages.models import Message, Thread
 from app.app_factory import db
+from app.backend.requesters.models import Requester
+
+
+def create_thread(requester: Requester, first_message: str):
+    new_thread = Thread(
+        key=str(uuid4()),
+        requester_id=requester.id
+    )
+    db.session.add(new_thread)
+    db.session.flush()
+    new_message = Message(
+        text=first_message,
+        requester_id=requester.id,
+        thread_id=new_thread.id,
+    )
+    db.session.add(new_message)
+    db.session.commit()
+
+    return new_thread
 
 
 def update_thread_status(thread: Thread, new_status: Thread.STATUSES, no_deletion=False):

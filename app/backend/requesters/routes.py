@@ -1,14 +1,16 @@
+import hashlib
 from uuid import uuid4
 from flask import Blueprint, abort, jsonify, request, session
 from pydantic import ValidationError
 from app.backend.admin.helpers import admin_only
+from app.backend.messages.helpers import create_thread
 from app.backend.requesters.models import Requester
 from app.backend.requesters.schemas import RequesterCreate, RequesterSchema
-from app.backend.messages.models import Message, Thread
+from app.backend.messages.models import Thread
 from sqlalchemy import func
 from app.app_factory import db
 from app.utils.misc import get_ip_address
-import hashlib
+from app.backend.requesters import helpers
 
 requesters_bp = Blueprint(
     name='requesters',
@@ -28,15 +30,7 @@ def authenticate_requester():
         Requester.username) == requester_schema.username.lower()).first()
 
     if not requester:
-        # Create one
-        ip = get_ip_address().encode()
-        data = {
-            **requester_schema.model_dump(exclude=['fp', 'first_message']),
-            'ip_hash': hashlib.sha256(ip).hexdigest(),
-        }
-
-        requester = Requester(**data)
-        db.session.add(requester)
+        requester = helpers.create_requester(schema=requester_schema)
 
     if requester.has_active_threads:
         # If the user has a session or the same fingerprint
@@ -47,7 +41,7 @@ def authenticate_requester():
             response = {'success': True,
                         'message': 'Active Thread has been found.',
                         'thread_id': thread.id}
-                        
+
             return jsonify(response), 200
         else:
             response = {'success': False}
@@ -59,19 +53,8 @@ def authenticate_requester():
         requester.ip_hash = hashlib.sha256(ip).hexdigest()
         requester.fp_hash = requester_schema.fp_hash
 
-    new_thread = Thread(
-        key=str(uuid4()),
-        requester_id=requester.id
-    )
-    db.session.add(new_thread)
-    db.session.flush()
-    new_message = Message(
-        text=requester_schema.first_message,
-        requester_id=requester.id,
-        thread_id=new_thread.id,
-    )
-    db.session.add(new_message)
-    db.session.commit()
+    new_thread = create_thread(requester=requester,
+                               first_message=requester_schema.first_message)
 
     session['requester_id'] = requester.id
     response = {'success': True,
@@ -89,7 +72,8 @@ def get_current_requester():
             'requester': None
         }
     else:
-        requester: Requester = Requester.query.filter_by(id=requester_id).first()
+        requester: Requester = Requester.query.filter_by(
+            id=requester_id).first()
         active_thread = Thread.active().filter_by(requester_id=requester_id).first()
         response = {
             'requester': RequesterSchema.model_validate(requester).model_dump(),
@@ -108,9 +92,9 @@ def get_requester_list():
         abort(400)
 
     pagination = Requester.query.paginate(page=page,
-                                             per_page=per_page,
-                                             max_per_page=25,
-                                             error_out=False)
+                                          per_page=per_page,
+                                          max_per_page=25,
+                                          error_out=False)
 
     user_list = [RequesterSchema.model_validate(user).model_dump()
                  for user in pagination.items]
