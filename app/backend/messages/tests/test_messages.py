@@ -75,6 +75,19 @@ def test_get_thread_list(client: FlaskClient, minimal_testing_setup):
     response = client.get('api/messages/threads')
     assert response.status_code == 200
     assert response.get_json()['total'] == len(minimal_testing_setup['threads'])
+    
+    # Locate by a thread key
+    thread = minimal_testing_setup['threads'][0]
+    response = client.get(f'api/messages/threads?key={thread.key}')
+    assert response.status_code == 200
+    assert response.get_json()['total'] == 1
+    assert response.get_json()['thread_list'][0]['id'] == thread.id
+
+    # Locate by a requester id
+    requester = minimal_testing_setup['requesters'][0]
+    response = client.get(f'api/messages/threads?requester_id={requester.id}')
+    assert response.status_code == 200
+    assert response.get_json()['total'] == len(requester.threads)
 
 
 def test_delete_thread(client: FlaskClient, minimal_testing_setup):
@@ -179,6 +192,6 @@ def test_send_message_to_thread(client: FlaskClient, minimal_testing_setup):
 def test_get_thread_statuses(client: FlaskClient, minimal_testing_setup):
     statuses = {status.name: status.value for status in Thread.STATUSES}
 
-    response = client.get('api/messages/threads-statuses')
+    response = client.get('api/messages/thread-statuses')
     assert response.status_code == 200
     assert len(response.get_json().keys()) == len(statuses.keys())

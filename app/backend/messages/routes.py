@@ -1,7 +1,7 @@
 from flask_login import current_user
 from pydantic import ValidationError
 from app.backend.admin.helpers import admin_only
-from app.backend.messages.helpers import update_thread_status
+from app.backend.messages.helpers import generate_thread_key, update_thread_status
 from app.backend.messages.models import Message, Thread
 from flask import Blueprint, abort, jsonify, request, session
 from app.backend.messages.schemas import MessageCreate, MessageSchema, ThreadBasicSchema, ThreadDetailedSchema, ThreadUpdate
@@ -61,8 +61,20 @@ def delete_message(id: int):
 @messages_bp.route('/threads', methods=['GET'])
 @admin_only
 def get_thread_list():
+    query = Thread.query
+    
+    # query params
+    thread_key = request.args.get("key", type=str)
+    if thread_key is not None:
+        query = query.filter(Thread.key == thread_key)
+    
+    requester_id = request.args.get("requester_id", type=int)
+    if requester_id is not None:
+        query = query.filter(Thread.requester_id == requester_id)
+    
+    
     pagination = paginate(request_args=request.args,
-                          sqlalchemy_query=Thread.active(),
+                          sqlalchemy_query=query,
                           pydantic_model=ThreadBasicSchema,
                           list_name='thread_list')
 
@@ -164,7 +176,7 @@ def send_message_to_thread(id: int):
     return jsonify(response)
 
 
-@messages_bp.route('/threads-statuses', methods=['GET'])
+@messages_bp.route('/thread-statuses', methods=['GET'])
 def get_thread_statuses():
     statuses = {status.name: status.value for status in Thread.STATUSES}
     
