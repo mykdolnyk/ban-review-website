@@ -1,8 +1,8 @@
 from typing import Dict
-import bcrypt
 from flask.testing import FlaskClient
 import pytest
 from app.app_factory import create_app, db
+from app.backend.admin.helpers import generate_password_hash
 from app.backend.admin.models import AdminNote, AdminUser
 from app.backend.messages.helpers import create_thread
 from app.backend.messages.models import Message, Thread
@@ -68,8 +68,7 @@ def minimal_testing_setup(client: FlaskClient) -> Dict:
         objects['threads'].extend(requester.threads)
 
     # Create Admin, Message, Note
-    password_hash = bcrypt.hashpw(password=TEST_PASSWORD.encode(),
-                                  salt=bcrypt.gensalt()).decode()
+    password_hash = generate_password_hash(TEST_PASSWORD)
     for j in range(2):
         admin_user = AdminUser(username=f'TestAdmin{j}',
                                password=password_hash,
@@ -78,7 +77,6 @@ def minimal_testing_setup(client: FlaskClient) -> Dict:
         db.session.flush()
 
         # Create a Message
-
         admin_message = Message(
             text='Second Message (by admin)',
             admin_user_id=admin_user.id,
@@ -97,7 +95,6 @@ def minimal_testing_setup(client: FlaskClient) -> Dict:
         )
         db.session.add(admin_note)
         objects['admin_notes'].append(admin_note)
-        
 
     db.session.commit()
 

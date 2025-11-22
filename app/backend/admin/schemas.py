@@ -1,6 +1,6 @@
 from datetime import datetime
-import bcrypt
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from app.backend.admin.helpers import check_password_hash
 from app.backend.admin.models import AdminUser
 from app.backend.requesters.models import Requester
 
@@ -16,9 +16,9 @@ class AdminLogin(BaseModel):
             raise ValueError("Login credentials are incorrect.")
 
         try:
-            credentials_match = bcrypt.checkpw(
-                self.password.encode(),
-                user.password.encode())
+            credentials_match = check_password_hash(
+                password=self.password, 
+                password_hash=user.password)
         except Exception as exc:
             raise exc
 
