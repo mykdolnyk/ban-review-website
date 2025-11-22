@@ -7,6 +7,7 @@ from app.backend.admin.schemas import AdminLogin, AdminNoteCreate, AdminNoteSche
 from app.app_factory import db
 from app.backend.messages.models import Message, Thread
 from app.backend.messages.schemas import MessageCreate, MessageSchema
+from app.utils.pagination import paginate
 
 admin_bp = Blueprint(
     name='admin',
@@ -65,27 +66,12 @@ def admin_get_current_user():
 @admin_bp.route('/users', methods=['GET'])
 @admin_only
 def admin_get_user_list():
-    try:
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per-page', 5))
-    except ValueError:
-        abort(400)
+    pagination = paginate(request_args=request.args,
+                          sqlalchemy_query=AdminUser.active(),
+                          pydantic_model=AdminUserSchema,
+                          list_name='user_list')
 
-    pagination = AdminUser.active().paginate(page=page,
-                                             per_page=per_page,
-                                             max_per_page=25,
-                                             error_out=False)
-
-    user_list = [AdminUserSchema.model_validate(user).model_dump()
-                 for user in pagination.items]
-
-    return jsonify({
-        "page": pagination.page,
-        "per_page": pagination.per_page,
-        "total": pagination.total,
-        "pages": pagination.pages,
-        "user_list": user_list
-    })
+    return jsonify(pagination)
 
 
 @admin_bp.route('/users/<int:id>', methods=["GET"])

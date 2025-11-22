@@ -11,6 +11,7 @@ from sqlalchemy import func
 from app.app_factory import db
 from app.utils.misc import get_ip_address
 from app.backend.requesters import helpers
+from app.utils.pagination import paginate
 
 requesters_bp = Blueprint(
     name='requesters',
@@ -85,27 +86,12 @@ def get_current_requester():
 @requesters_bp.route('/users', methods=['GET'])
 @admin_only
 def get_requester_list():
-    try:
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per-page', 5))
-    except ValueError:
-        abort(400)
+    pagination = paginate(request_args=request.args,
+                          sqlalchemy_query=Requester.query,
+                          pydantic_model=RequesterSchema,
+                          list_name='user_list')
 
-    pagination = Requester.query.paginate(page=page,
-                                          per_page=per_page,
-                                          max_per_page=25,
-                                          error_out=False)
-
-    user_list = [RequesterSchema.model_validate(user).model_dump()
-                 for user in pagination.items]
-
-    return jsonify({
-        "page": pagination.page,
-        "per_page": pagination.per_page,
-        "total": pagination.total,
-        "pages": pagination.pages,
-        "user_list": user_list
-    })
+    return jsonify(pagination)
 
 
 @requesters_bp.route('/users/<int:id>', methods=["GET"])

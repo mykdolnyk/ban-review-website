@@ -6,6 +6,7 @@ from app.backend.messages.models import Message, Thread
 from flask import Blueprint, abort, jsonify, request, session
 from app.backend.messages.schemas import MessageCreate, MessageSchema, ThreadBasicSchema, ThreadDetailedSchema, ThreadUpdate
 from app.app_factory import db
+from app.utils.pagination import paginate
 
 messages_bp = Blueprint(
     name='messages',
@@ -17,27 +18,12 @@ messages_bp = Blueprint(
 @messages_bp.route('/messages', methods=['GET'])
 @admin_only
 def get_message_list():
-    try:
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per-page', 5))
-    except ValueError:
-        abort(400)
+    pagination = paginate(request_args=request.args,
+                          sqlalchemy_query=Message.query,
+                          pydantic_model=MessageSchema,
+                          list_name='message_list')
 
-    pagination = Message.query.paginate(page=page,
-                                        per_page=per_page,
-                                        max_per_page=25,
-                                        error_out=False)
-
-    message_list = [MessageSchema.model_validate(message).model_dump()
-                    for message in pagination.items]
-
-    return jsonify({
-        "page": pagination.page,
-        "per_page": pagination.per_page,
-        "total": pagination.total,
-        "pages": pagination.pages,
-        "message_list": message_list
-    })
+    return jsonify(pagination)
 
 
 @messages_bp.route('/messages/<int:id>', methods=["GET"])
@@ -75,27 +61,12 @@ def delete_message(id: int):
 @messages_bp.route('/threads', methods=['GET'])
 @admin_only
 def get_thread_list():
-    try:
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per-page', 5))
-    except ValueError:
-        abort(400)
+    pagination = paginate(request_args=request.args,
+                          sqlalchemy_query=Thread.active(),
+                          pydantic_model=ThreadBasicSchema,
+                          list_name='thread_list')
 
-    pagination = Thread.active().paginate(page=page,
-                                          per_page=per_page,
-                                          max_per_page=25,
-                                          error_out=False)
-
-    thread_list = [ThreadBasicSchema.model_validate(thread).model_dump()
-                   for thread in pagination.items]
-
-    return jsonify({
-        "page": pagination.page,
-        "per_page": pagination.per_page,
-        "total": pagination.total,
-        "pages": pagination.pages,
-        "thread_list": thread_list
-    })
+    return jsonify(pagination)
 
 
 @messages_bp.route('/threads/<int:id>', methods=["DELETE"])
