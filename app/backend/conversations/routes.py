@@ -18,7 +18,7 @@ conversations_bp = Blueprint(
 logger = getLogger(__name__)
 
 
-@conversations_bp.route('/conversations', methods=['GET'])
+@conversations_bp.route('/messages', methods=['GET'])
 @admin_only
 def get_message_list():
     pagination = paginate(request_args=request.args,
@@ -29,7 +29,7 @@ def get_message_list():
     return jsonify(pagination)
 
 
-@conversations_bp.route('/conversations/<int:id>', methods=["GET"])
+@conversations_bp.route('/messages/<int:id>', methods=["GET"])
 @admin_only
 def get_message(id: int):
     message = Message.query.filter_by(id=id).first()
@@ -42,7 +42,7 @@ def get_message(id: int):
     return jsonify(response)
 
 
-@conversations_bp.route('/conversations/<int:id>', methods=["DELETE"])
+@conversations_bp.route('/messages/<int:id>', methods=["DELETE"])
 @admin_only
 def delete_message(id: int):
     message = Message.query.filter_by(id=id).first()
