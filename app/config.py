@@ -4,6 +4,8 @@ SECRET_KEY = 'CHANGE-ME'
 SQLALCHEMY_DATABASE_URI = "sqlite:///pinban.db"
 THREAD_ID_LABEL = 'PINBAN'
 
+CSRF_PROTECTION = True
+
 BASE_DIR = Path(__file__).resolve().parent
 
 LOGGING = {
