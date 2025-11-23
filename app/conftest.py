@@ -4,8 +4,8 @@ import pytest
 from app.app_factory import create_app, db
 from app.backend.admin.helpers import generate_password_hash
 from app.backend.admin.models import AdminNote, AdminUser
-from app.backend.messages.helpers import create_thread
-from app.backend.messages.models import Message, Thread
+from app.backend.conversations.helpers import create_thread
+from app.backend.conversations.models import Message, Thread
 from app.backend.requesters.helpers import create_requester
 from app.backend.requesters.models import Requester
 from app.backend.requesters.schemas import RequesterCreate

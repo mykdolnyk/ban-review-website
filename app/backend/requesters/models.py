@@ -3,7 +3,7 @@ from app.app_factory import db
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, List
 from datetime import datetime
-from app.backend.messages.models import Message, Thread
+from app.backend.conversations.models import Message, Thread
 if TYPE_CHECKING:
     from app.backend.admin.models import AdminUser, AdminNote
 

@@ -7,7 +7,7 @@ from datetime import datetime
 from app.backend.requesters.models import Requester
 
 if TYPE_CHECKING:
-    from app.backend.messages.models import Message
+    from app.backend.conversations.models import Message
 
 
 class AdminUser(UserMixin, db.Model):

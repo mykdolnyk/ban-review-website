@@ -1,6 +1,6 @@
 import random
 from uuid import uuid4
-from app.backend.messages.models import Message, Thread
+from app.backend.conversations.models import Message, Thread
 from app.app_factory import db
 from app.backend.requesters.models import Requester
 from app import config

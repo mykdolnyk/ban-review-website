@@ -30,12 +30,12 @@ def create_app(config_object=config, overrides=None):
     
     from app.backend.admin.routes import admin_bp
     from app.backend.requesters.routes import requesters_bp
-    from app.backend.messages.routes import messages_bp
+    from app.backend.conversations.routes import conversations_bp
     from app.backend.common.routes import common_bp
     import app.backend.admin.сli
     flask_app.register_blueprint(admin_bp)
     flask_app.register_blueprint(requesters_bp)
-    flask_app.register_blueprint(messages_bp)
+    flask_app.register_blueprint(conversations_bp)
     flask_app.register_blueprint(common_bp)
 
     @flask_app.before_request

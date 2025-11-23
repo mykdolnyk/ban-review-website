@@ -3,10 +3,10 @@ from uuid import uuid4
 from flask import Blueprint, abort, jsonify, request, session
 from pydantic import ValidationError
 from app.backend.admin.helpers import admin_only
-from app.backend.messages.helpers import create_thread
+from app.backend.conversations.helpers import create_thread
 from app.backend.requesters.models import Requester
 from app.backend.requesters.schemas import RequesterCreate, RequesterSchema
-from app.backend.messages.models import Thread
+from app.backend.conversations.models import Thread
 from sqlalchemy import func
 from app.app_factory import db
 from app.utils.misc import get_ip_address

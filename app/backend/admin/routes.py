@@ -6,8 +6,8 @@ from app.backend.admin.helpers import admin_only
 from app.backend.admin.models import AdminNote, AdminUser
 from app.backend.admin.schemas import AdminLogin, AdminNoteCreate, AdminNoteSchema, AdminNoteUpdate, AdminUserSchema
 from app.app_factory import db
-from app.backend.messages.models import Message, Thread
-from app.backend.messages.schemas import MessageCreate, MessageSchema
+from app.backend.conversations.models import Message, Thread
+from app.backend.conversations.schemas import MessageCreate, MessageSchema
 from app.utils.pagination import paginate
 
 admin_bp = Blueprint(

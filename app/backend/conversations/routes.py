@@ -2,23 +2,23 @@ from logging import getLogger
 from flask_login import current_user
 from pydantic import ValidationError
 from app.backend.admin.helpers import admin_only
-from app.backend.messages.helpers import generate_thread_key, update_thread_status
-from app.backend.messages.models import Message, Thread
+from app.backend.conversations.helpers import generate_thread_key, update_thread_status
+from app.backend.conversations.models import Message, Thread
 from flask import Blueprint, abort, jsonify, request, session
-from app.backend.messages.schemas import MessageCreate, MessageSchema, ThreadBasicSchema, ThreadDetailedSchema, ThreadUpdate
+from app.backend.conversations.schemas import MessageCreate, MessageSchema, ThreadBasicSchema, ThreadDetailedSchema, ThreadUpdate
 from app.app_factory import db
 from app.utils.pagination import paginate
 
-messages_bp = Blueprint(
+conversations_bp = Blueprint(
     name='messages',
     import_name=__name__,
-    url_prefix='/api/messages'
+    url_prefix='/api/conversations'
 )
 
 logger = getLogger(__name__)
 
 
-@messages_bp.route('/messages', methods=['GET'])
+@conversations_bp.route('/conversations', methods=['GET'])
 @admin_only
 def get_message_list():
     pagination = paginate(request_args=request.args,
@@ -29,7 +29,7 @@ def get_message_list():
     return jsonify(pagination)
 
 
-@messages_bp.route('/messages/<int:id>', methods=["GET"])
+@conversations_bp.route('/conversations/<int:id>', methods=["GET"])
 @admin_only
 def get_message(id: int):
     message = Message.query.filter_by(id=id).first()
@@ -42,7 +42,7 @@ def get_message(id: int):
     return jsonify(response)
 
 
-@messages_bp.route('/messages/<int:id>', methods=["DELETE"])
+@conversations_bp.route('/conversations/<int:id>', methods=["DELETE"])
 @admin_only
 def delete_message(id: int):
     message = Message.query.filter_by(id=id).first()
@@ -62,7 +62,7 @@ def delete_message(id: int):
     return '', 204
 
 
-@messages_bp.route('/threads', methods=['GET'])
+@conversations_bp.route('/threads', methods=['GET'])
 @admin_only
 def get_thread_list():
     query = Thread.query
@@ -85,7 +85,7 @@ def get_thread_list():
     return jsonify(pagination)
 
 
-@messages_bp.route('/threads/<int:id>', methods=["DELETE"])
+@conversations_bp.route('/threads/<int:id>', methods=["DELETE"])
 @admin_only
 def delete_thread(id: int):
     thread: Thread = Thread.active().filter_by(id=id).first()
@@ -108,7 +108,7 @@ def delete_thread(id: int):
     return '', 204
 
 
-@messages_bp.route('/threads/<int:id>', methods=['PUT'])
+@conversations_bp.route('/threads/<int:id>', methods=['PUT'])
 @admin_only
 def update_thread(id: int):
     try:
@@ -136,7 +136,7 @@ def update_thread(id: int):
     return jsonify(response)
 
 
-@messages_bp.route('/threads/<int:id>', methods=["GET"])
+@conversations_bp.route('/threads/<int:id>', methods=["GET"])
 def get_thread(id: int):
     thread: Thread = Thread.active().filter_by(id=id).first()
 
@@ -151,7 +151,7 @@ def get_thread(id: int):
     return jsonify(response)
 
 
-@messages_bp.route('/threads/<int:id>', methods=['POST'])
+@conversations_bp.route('/threads/<int:id>', methods=['POST'])
 def send_message_to_thread(id: int):
     thread: Thread = Thread.active().filter_by(id=id).first()
 
@@ -183,7 +183,7 @@ def send_message_to_thread(id: int):
     return jsonify(response)
 
 
-@messages_bp.route('/thread-statuses', methods=['GET'])
+@conversations_bp.route('/thread-statuses', methods=['GET'])
 def get_thread_statuses():
     statuses = {status.name: status.value for status in Thread.STATUSES}
     
