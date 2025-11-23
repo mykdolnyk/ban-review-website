@@ -1,4 +1,5 @@
 import click
+from sqlalchemy import func
 from app.backend.admin.helpers import generate_password_hash
 from app.backend.admin.routes import admin_bp
 from app.app_factory import db
@@ -7,19 +8,19 @@ from app.backend.admin.models import AdminUser
 admin_bp.cli.help = 'Perform user-related operations.'
 
 
-@admin_bp.cli.command('createsuperuser', help='Create an admin user.')
+@admin_bp.cli.command('createadmin', help='Create an admin user.')
 @click.argument('username')
 @click.argument('email')
 @click.password_option()
-def createsuperuser(username, email, password):
+def create_admin(username: str, email: str, password: str):
     password_hash = generate_password_hash(password)
     
-    if AdminUser.query.filter(AdminUser.username == username).first():
+    if AdminUser.query.filter(func.lower(AdminUser.username) == username.lower()).first():
         click.echo('The username is already taken.')
-        return False
-    if AdminUser.query.filter(AdminUser.email == email).first():
+        raise click.ClickException()
+    if AdminUser.query.filter(func.lower(AdminUser.email) == email.lower()).first():
         click.echo('The email is already taken.')
-        return False
+        raise click.ClickException()
 
     user = AdminUser(username=username,
                      password=password_hash,
@@ -27,4 +28,5 @@ def createsuperuser(username, email, password):
     db.session.add(user)
     db.session.commit()
 
-    click.echo('The superuser has been successfully created.')
+    click.echo('The admin user has been successfully created.')
+    return 

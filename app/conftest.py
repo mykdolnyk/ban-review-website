@@ -10,6 +10,7 @@ from app.backend.requesters.helpers import create_requester
 from app.backend.requesters.models import Requester
 from app.backend.requesters.schemas import RequesterCreate
 import config
+from click.testing import CliRunner
 
 TEST_FP = 'testing-fingerprint'
 TEST_PASSWORD = 'testing-password'
@@ -36,7 +37,7 @@ def client(app):
 
 
 @pytest.fixture
-def runner(app):
+def runner(app) -> CliRunner:
     return app.test_cli_runner()
 
 
