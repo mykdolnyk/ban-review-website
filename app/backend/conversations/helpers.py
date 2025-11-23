@@ -1,5 +1,7 @@
 import random
 from uuid import uuid4
+
+from flask_login import current_user
 from app.backend.conversations.models import Message, Thread
 from app.app_factory import db
 from app.backend.requesters.models import Requester
@@ -27,7 +29,8 @@ def create_thread(requester: Requester, first_message: str):
     return new_thread
 
 
-def update_thread_status(thread: Thread, new_status: Thread.STATUSES, no_deletion=False):
+def update_thread_status(thread: Thread, new_status: Thread.STATUSES, no_deletion=False,
+                         processed_by_system=False):
     if new_status == Thread.STATUSES.ACTIVE:
         thread.status = Thread.STATUSES.ACTIVE
         db.session.commit()
@@ -53,6 +56,9 @@ def update_thread_status(thread: Thread, new_status: Thread.STATUSES, no_deletio
     if not no_deletion:
         for message in thread.messages:
             db.session.delete(message)
+    
+    if not processed_by_system:
+        thread.requester.last_reviewed_by_id = current_user.id
 
     db.session.commit()
     return True
