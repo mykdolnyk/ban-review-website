@@ -10,7 +10,7 @@ from app.app_factory import db
 from app.utils.pagination import paginate
 
 conversations_bp = Blueprint(
-    name='messages',
+    name='conversations',
     import_name=__name__,
     url_prefix='/api/conversations'
 )

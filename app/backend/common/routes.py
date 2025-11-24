@@ -8,7 +8,7 @@ common_bp = Blueprint('common', __name__, url_prefix='/api')
 
 @common_bp.route('/csrf-token', methods=['GET'])
 def csrf_token():
-    if not config.get('CSRF_PROTECTION'):
+    if not config.CSRF_PROTECTION:
         abort(404)
 
     token = get_csrf_token()
