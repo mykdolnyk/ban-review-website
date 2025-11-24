@@ -33,6 +33,7 @@ def create_app(config_object=config, overrides=None):
     from app.backend.conversations.routes import conversations_bp
     from app.backend.common.routes import common_bp
     import app.backend.admin.сli
+    import app.backend.conversations.сli
     flask_app.register_blueprint(admin_bp)
     flask_app.register_blueprint(requesters_bp)
     flask_app.register_blueprint(conversations_bp)
