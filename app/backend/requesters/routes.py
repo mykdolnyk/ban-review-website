@@ -9,9 +9,9 @@ from app.backend.requesters.schemas import RequesterCreate, RequesterSchema
 from app.backend.conversations.models import Thread
 from sqlalchemy import func
 from app.app_factory import db
-from app.utils.misc import get_ip_address
+from app.backend.utils.misc import get_ip_address
 from app.backend.requesters import helpers
-from app.utils.pagination import paginate
+from app.backend.utils.pagination import paginate
 
 requesters_bp = Blueprint(
     name='requesters',

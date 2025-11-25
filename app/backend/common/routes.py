@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, jsonify
 from app import config
-from app.utils.misc import get_csrf_token
+from app.backend.utils.misc import get_csrf_token
 
 
 common_bp = Blueprint('common', __name__, url_prefix='/api')

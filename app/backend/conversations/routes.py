@@ -7,7 +7,7 @@ from app.backend.conversations.models import Message, Thread
 from flask import Blueprint, abort, jsonify, request, session
 from app.backend.conversations.schemas import MessageCreate, MessageSchema, ThreadBasicSchema, ThreadDetailedSchema, ThreadUpdate
 from app.app_factory import db
-from app.utils.pagination import paginate
+from app.backend.utils.pagination import paginate
 
 conversations_bp = Blueprint(
     name='conversations',

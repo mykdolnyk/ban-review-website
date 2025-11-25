@@ -1,27 +1,33 @@
+from redis import Redis
 from app import config
-from flask import Flask, abort, request, session
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_redis import FlaskRedis
 from logging.config import dictConfig as logging_config
+
+from app.backend.utils.misc import setup_csrf
 
 
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
-
+redis_client: Redis = FlaskRedis()
 
 def create_app(config_object=config, overrides=None):
     logging_config(config.LOGGING)
     
     flask_app = Flask(__name__)
     flask_app.config.from_object(config_object)
+    flask_app.debug = True
     if overrides:
         flask_app.config.update(overrides)
 
     db.init_app(app=flask_app)
     migrate.init_app(app=flask_app, db=db)
     login_manager.init_app(app=flask_app)
+    redis_client.init_app(app=flask_app)
     
     from app.backend.admin.models import AdminUser
     @login_manager.user_loader
@@ -39,15 +45,6 @@ def create_app(config_object=config, overrides=None):
     flask_app.register_blueprint(conversations_bp)
     flask_app.register_blueprint(common_bp)
 
-    @flask_app.before_request
-    def csrf_protect():
-        if flask_app.config.get('TESTING') or not flask_app.config.get('CSRF_PROTECTION'):
-            return None
-        
-        if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
-            header_token = request.headers.get('X-CSRF-Token')
-            session_token = session.get('csrf_token')
-            if not header_token or not session_token or header_token != session_token:
-                abort(403, 'CSRF token is missing or is invalid.')
+    setup_csrf(app=flask_app)
 
     return flask_app

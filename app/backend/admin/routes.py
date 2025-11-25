@@ -8,7 +8,7 @@ from app.backend.admin.schemas import AdminLogin, AdminNoteCreate, AdminNoteSche
 from app.app_factory import db
 from app.backend.conversations.models import Message, Thread
 from app.backend.conversations.schemas import MessageCreate, MessageSchema
-from app.utils.pagination import paginate
+from app.backend.utils.pagination import paginate
 
 admin_bp = Blueprint(
     name='admin',

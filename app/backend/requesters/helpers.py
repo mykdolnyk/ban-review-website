@@ -1,7 +1,7 @@
 import hashlib
 from app.backend.requesters.models import Requester
 from app.backend.requesters.schemas import RequesterSchema
-from app.utils.misc import get_ip_address
+from app.backend.utils.misc import get_ip_address
 from app.app_factory import db
 
 
