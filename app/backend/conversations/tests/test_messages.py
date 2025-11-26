@@ -1,6 +1,6 @@
 from flask.testing import FlaskClient
-from conftest import TEST_FP, TEST_PASSWORD
-from app.backend.conversations.models import Message, Thread
+from app.conftest import TEST_PASSWORD
+from app.backend.conversations.models import Message
 
 
 def test_get_message_list(client: FlaskClient, minimal_testing_setup):

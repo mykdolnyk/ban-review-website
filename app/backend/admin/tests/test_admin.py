@@ -1,7 +1,5 @@
 from flask.testing import FlaskClient
-from conftest import TEST_PASSWORD
-# 'username': minimal_testing_setup['admin_users'][0].username,
-# 'password': TEST_PASSWORD
+from app.conftest import TEST_PASSWORD
 
 
 def test_admin_login(client: FlaskClient, minimal_testing_setup):

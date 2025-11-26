@@ -2,9 +2,15 @@ from pathlib import Path
 
 SECRET_KEY = 'CHANGE-ME'
 SQLALCHEMY_DATABASE_URI = "sqlite:///pinban.db"
-THREAD_ID_LABEL = 'PINBAN'
+REDIS_URL = "redis://redis:6379"
 
 CSRF_PROTECTION = True
+
+RATE_LIMIT_ENABLED = True
+RATE_LIMIT_COOLDOWN = 900
+RATE_LIMIT_MAX_REQUESTS = 100
+
+THREAD_ID_LABEL = 'PINBAN'
 
 BASE_DIR = Path(__file__).resolve().parent
 

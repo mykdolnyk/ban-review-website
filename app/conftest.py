@@ -9,7 +9,7 @@ from app.backend.conversations.models import Message, Thread
 from app.backend.requesters.helpers import create_requester
 from app.backend.requesters.models import Requester
 from app.backend.requesters.schemas import RequesterCreate
-import config
+from app import config
 from click.testing import CliRunner
 
 TEST_FP = 'testing-fingerprint'

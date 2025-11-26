@@ -1,3 +1,4 @@
+from fakeredis import FakeRedis
 from redis import Redis
 from app import config
 from flask import Flask
@@ -6,14 +7,15 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_redis import FlaskRedis
 from logging.config import dictConfig as logging_config
-
 from app.backend.utils.misc import setup_csrf
+from app.backend.utils.rate_limiting import setup_rate_limiting
 
 
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 redis_client: Redis = FlaskRedis()
+
 
 def create_app(config_object=config, overrides=None):
     logging_config(config.LOGGING)
@@ -28,7 +30,9 @@ def create_app(config_object=config, overrides=None):
     migrate.init_app(app=flask_app, db=db)
     login_manager.init_app(app=flask_app)
     redis_client.init_app(app=flask_app)
-    
+    if flask_app.testing:
+        redis_client._redis_client = FakeRedis()
+
     from app.backend.admin.models import AdminUser
     @login_manager.user_loader
     def user_loader(user_id: str):
@@ -46,5 +50,6 @@ def create_app(config_object=config, overrides=None):
     flask_app.register_blueprint(common_bp)
 
     setup_csrf(app=flask_app)
-
+    setup_rate_limiting(app=flask_app, redis_client=redis_client)
+    
     return flask_app

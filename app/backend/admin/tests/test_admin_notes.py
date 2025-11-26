@@ -1,5 +1,5 @@
 from flask.testing import FlaskClient
-from conftest import TEST_PASSWORD
+from app.conftest import TEST_PASSWORD
 
 
 def test_admin_get_note_list(client: FlaskClient, minimal_testing_setup):
