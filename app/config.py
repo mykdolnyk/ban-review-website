@@ -1,8 +1,11 @@
+import os
 from pathlib import Path
 
-SECRET_KEY = 'CHANGE-ME'
-SQLALCHEMY_DATABASE_URI = "sqlite:///pinban.db"
-REDIS_URL = "redis://redis:6379"
+BASE_DIR = Path(__file__).resolve().parent
+
+SECRET_KEY = os.getenv('FLASK_SECRET_KEY')
+SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI')
+REDIS_URL = os.getenv('REDIS_URL')
 
 CSRF_PROTECTION = True
 
@@ -11,8 +14,6 @@ RATE_LIMIT_COOLDOWN = 900
 RATE_LIMIT_MAX_REQUESTS = 100
 
 THREAD_ID_LABEL = 'PINBAN'
-
-BASE_DIR = Path(__file__).resolve().parent
 
 LOGGING = {
     'version': 1,
