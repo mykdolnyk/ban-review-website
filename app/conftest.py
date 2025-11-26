@@ -1,7 +1,7 @@
 from typing import Dict
 from flask.testing import FlaskClient
 import pytest
-from app.app_factory import create_app, db
+from app.app_factory import create_app, db, redis_client
 from app.backend.admin.helpers import generate_password_hash
 from app.backend.admin.models import AdminNote, AdminUser
 from app.backend.conversations.helpers import create_thread
@@ -29,6 +29,7 @@ def app():
         yield app
         db.session.remove()
         db.drop_all()
+        redis_client.flushall()
 
 
 @pytest.fixture

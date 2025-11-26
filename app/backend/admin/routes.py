@@ -2,12 +2,13 @@ from logging import getLogger
 from flask import Blueprint, abort, jsonify, request
 from flask_login import current_user, login_user, logout_user
 from pydantic import ValidationError
-from app.backend.admin.helpers import admin_only
+from app.backend.admin.helpers import admin_only, limit_login_attempts
 from app.backend.admin.models import AdminNote, AdminUser
 from app.backend.admin.schemas import AdminLogin, AdminNoteCreate, AdminNoteSchema, AdminNoteUpdate, AdminUserSchema
-from app.app_factory import db
+from app.app_factory import db, redis_client
 from app.backend.conversations.models import Message, Thread
 from app.backend.conversations.schemas import MessageCreate, MessageSchema
+from app.backend.utils.misc import get_ip_address
 from app.backend.utils.pagination import paginate
 
 admin_bp = Blueprint(
@@ -20,6 +21,7 @@ logger = getLogger(__name__)
 
 
 @admin_bp.route('/login', methods=['POST'])
+@limit_login_attempts
 def admin_login():
     if current_user.is_authenticated:
         return jsonify({
@@ -41,6 +43,10 @@ def admin_login():
         'success': True,
         'id': user.id
     }
+    
+    # Clear the login attempt count
+    key = f'admin_login_attempts:{get_ip_address()}'
+    redis_client.delete(key)
 
     return jsonify(response)
 

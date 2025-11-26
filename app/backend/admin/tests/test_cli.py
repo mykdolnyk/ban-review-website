@@ -1,5 +1,6 @@
-from app.backend.admin.сli import create_admin
-
+from app import config
+from app.backend.admin.сli import create_admin, remove_login_restriction
+from app.app_factory import redis_client
 
 def test_create_admin(runner):
     # Create first user
@@ -37,3 +38,16 @@ def test_create_admin(runner):
                            args=[another_username, another_email],
                            input=user_input)
     assert result.exit_code == 0
+    
+    
+def test_remove_login_restriction(runner):
+    ip_address = '8.8.8.8'
+    result = runner.invoke(remove_login_restriction, args=ip_address)
+    assert result.exit_code == 1
+    
+    key = f'admin_login_attempts:{ip_address}'
+    redis_client.set(key, 9999)
+    
+    result = runner.invoke(remove_login_restriction, args=ip_address)
+    assert result.exit_code == 0
+    assert redis_client.get(key) is None

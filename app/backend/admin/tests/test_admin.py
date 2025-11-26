@@ -1,4 +1,6 @@
+from time import sleep
 from flask.testing import FlaskClient
+from app import config
 from app.conftest import TEST_PASSWORD
 
 
@@ -69,7 +71,8 @@ def test_admin_get_user_list(client: FlaskClient, minimal_testing_setup):
 
     response = client.get('api/admin/users')
     assert response.status_code == 200
-    assert response.get_json()['total'] == len(minimal_testing_setup['admin_users'])
+    assert response.get_json()['total'] == len(
+        minimal_testing_setup['admin_users'])
 
 
 def test_admin_get_user(client: FlaskClient, minimal_testing_setup):
@@ -114,3 +117,32 @@ def test_admin_send_message_to_thread(client: FlaskClient, minimal_testing_setup
     })
     assert response.status_code == 200
     assert response.get_json()['thread_id'] == thread_id
+
+
+def test_limit_login_attempts(client: FlaskClient, minimal_testing_setup, monkeypatch):
+    monkeypatch.setattr(config, "ADMIN_LOGIN_COOLDOWN", 3)
+    
+    # Reach the Login max attempts count
+    for i in range(config.ADMIN_LOGIN_MAX_ATTEMPTS):
+        response = client.post('api/admin/login', json={
+            'username': minimal_testing_setup['admin_users'][0].username,
+            'password': 'INCORRECT_PASSWORD'
+        })
+        assert response.status_code == 400
+
+    # Try again with correct details but being over the limit
+    response = client.post('api/admin/login', json={
+        'username': minimal_testing_setup['admin_users'][0].username,
+        'password': TEST_PASSWORD
+    })
+    assert response.status_code == 429
+    
+    # Wait until the cooldown passes and try again with correct details
+    sleep(config.ADMIN_LOGIN_COOLDOWN)
+
+    response = client.post('api/admin/login', json={
+        'username': minimal_testing_setup['admin_users'][0].username,
+        'password': TEST_PASSWORD
+    })
+    
+    assert response.status_code == 200
