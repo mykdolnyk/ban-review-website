@@ -1,0 +1,1 @@
+0 0* * * root bash /app/scripts/cron/delete_old_threads.sh

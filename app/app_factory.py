@@ -12,7 +12,7 @@ from app.backend.utils.rate_limiting import setup_rate_limiting
 
 
 db = SQLAlchemy()
-migrate = Migrate()
+migrate = Migrate(directory='app/migrations')
 login_manager = LoginManager()
 redis_client: Redis = FlaskRedis()
 
