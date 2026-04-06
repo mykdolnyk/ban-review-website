@@ -18,6 +18,8 @@ ADMIN_LOGIN_MAX_ATTEMPTS = 5
 
 THREAD_ID_LABEL = 'PINBAN'
 
+LOG_DIR = Path('/var/log/pinban/')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -41,7 +43,7 @@ LOGGING = {
             'level': 'ERROR',
             'formatter': 'verbose',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'error.log'
+            'filename': LOG_DIR / 'error.log'
         }
     },
 
